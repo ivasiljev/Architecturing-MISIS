@@ -65,19 +65,18 @@ echo.
 echo Running services:
 echo   - SQL Server:     localhost:1433
 echo   - Redis:          localhost:6379
-echo   - Kafka:          localhost:9092
-echo   - Zookeeper:      localhost:2181
+echo   - RabbitMQ:       localhost:5672
 echo.
 echo Monitoring:
 echo   - Prometheus:     http://localhost:9090
 echo   - Grafana:        http://localhost:3000 (admin/admin123)
-echo   - Kafka UI:       http://localhost:8080
+echo   - RabbitMQ Mgmt:  http://localhost:15672
 echo.
 echo Metrics exporters:
 echo   - Redis Exporter: localhost:9121
 echo   - Node Exporter:  localhost:9100
 echo   - SQL Exporter:   localhost:9399
-echo   - Kafka JMX:      localhost:9308
+echo   - RabbitMQ:       localhost:9419
 echo.
 echo To start applications use:
 echo   Full start:       start-monitoring.bat

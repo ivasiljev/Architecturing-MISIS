@@ -30,7 +30,7 @@ src/
 │   ├── Data/                        # DbContext и конфигурации
 │   ├── Repositories/                # Реализация репозиториев
 │   ├── Caching/                     # Redis кэширование
-│   └── Events/                      # Kafka события
+│   └── Events/                      # RabbitMQ события
 ├── JewelryStore.API/                # Web API сервис
 │   ├── Controllers/                 # REST API контроллеры
 │   ├── Services/                    # Бизнес-сервисы

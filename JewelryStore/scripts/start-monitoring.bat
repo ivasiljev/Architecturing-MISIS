@@ -17,19 +17,19 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5257 ^| findstr LISTENING') 
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5216 ^| findstr LISTENING') do taskkill /f /pid %%a >nul 2>&1
 
 echo Starting infrastructure services...
-docker-compose -f docker/docker-compose.yml up -d sqlserver redis zookeeper
+docker-compose -f docker/docker-compose.yml up -d sqlserver redis
 
-echo Waiting for Zookeeper to start...
-ping 127.0.0.1 -n 41 > nul
+echo Waiting for infrastructure to start...
+ping 127.0.0.1 -n 21 > nul
 
-echo Starting Kafka...
-docker-compose -f docker/docker-compose.yml up -d kafka
+echo Starting RabbitMQ...
+docker-compose -f docker/docker-compose.yml up -d rabbitmq
 
-echo Waiting for Kafka to start...
+echo Waiting for RabbitMQ to start...
 ping 127.0.0.1 -n 31 > nul
 
 echo Starting monitoring services...
-docker-compose -f docker/docker-compose.yml up -d prometheus grafana redis-exporter node-exporter sql-exporter kafka-exporter
+docker-compose -f docker/docker-compose.yml up -d prometheus grafana redis-exporter node-exporter sql-exporter rabbitmq-exporter
 
 echo Waiting for monitoring services to start...
 ping 127.0.0.1 -n 21 > nul
@@ -69,7 +69,7 @@ echo API: http://localhost:5257
 echo UI: http://localhost:5216
 echo Prometheus: http://localhost:9090
 echo Grafana: http://localhost:3000 (admin/admin123)
-echo Kafka UI: http://localhost:8080
+echo RabbitMQ Management: http://localhost:15672
 echo =====================================================
 echo Press any key to show service status...
 pause >nul

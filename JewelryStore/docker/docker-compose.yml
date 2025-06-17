@@ -11,8 +11,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=JewelryStoreDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
       - ConnectionStrings__Redis=redis:6379
-      - ConnectionStrings__Kafka=kafka:9092
-      - Kafka__BootstrapServers=kafka:9092
+      - ConnectionStrings__RabbitMQ=amqp://guest:guest@rabbitmq:5672/
     networks:
       - jewelrystore-network
     depends_on:
@@ -75,64 +74,28 @@ services:
       timeout: 10s
       retries: 3
 
-  # Zookeeper (for Kafka)
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    container_name: jewelrystore-zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_INIT_LIMIT: 5
-      ZOOKEEPER_SYNC_LIMIT: 2
-    volumes:
-      - zookeeper_data:/var/lib/zookeeper/data
-      - zookeeper_logs:/var/lib/zookeeper/log
-    networks:
-      - jewelrystore-network
-    healthcheck:
-      test: ["CMD", "sh", "-c", "echo stat | nc localhost 2181 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-
-  # Kafka
-  kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    container_name: jewelrystore-kafka
-    depends_on:
-      zookeeper:
-        condition: service_healthy
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: jewelrystore-rabbitmq
     ports:
-      - "9092:9092"  # Internal Docker network
-      - "9094:9094"  # External host access
-      - "9999:9999"  # JMX port
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9094
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
-      KAFKA_JMX_HOSTNAME: kafka
-      KAFKA_JMX_PORT: 9999
-      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=9999"
-      # Дополнительные настройки для стабильности
-      KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 60000
-      KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 60000
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit log_levels [{connection,error},{default,info}] disk_free_limit 2147483648
     volumes:
-      - kafka_data:/var/lib/kafka/data
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - jewelrystore-network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 10s
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 40s
 
   # Prometheus
   prometheus:
@@ -229,36 +192,23 @@ services:
     depends_on:
       - sqlserver
 
-  # Kafka Exporter - Direct Kafka API metrics  
-  kafka-exporter:
-    image: danielqsj/kafka-exporter:latest
-    container_name: jewelrystore-kafka-exporter
+  # RabbitMQ Exporter (for Prometheus metrics)
+  rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter:latest
+    container_name: jewelrystore-rabbitmq-exporter
     ports:
-      - "9308:9308"
-    command:
-      - --kafka.server=kafka:9092
-      - --web.listen-address=0.0.0.0:9308
-      - --web.telemetry-path=/metrics
-      - --log.level=info
-    networks:
-      - jewelrystore-network
-    depends_on:
-      kafka:
-        condition: service_healthy
-
-  # Kafka UI (optional, for debugging)
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: jewelrystore-kafka-ui
-    ports:
-      - "8080:8080"
+      - "9419:9419"
     environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      RABBIT_URL: "http://rabbitmq:15672"
+      RABBIT_USER: guest
+      RABBIT_PASSWORD: guest
+      PUBLISH_PORT: 9419
+      OUTPUT_FORMAT: TTY
+      LOG_LEVEL: info
     networks:
       - jewelrystore-network
     depends_on:
-      kafka:
+      rabbitmq:
         condition: service_healthy
 
 networks:
@@ -268,9 +218,7 @@ networks:
 volumes:
   sqlserver_data:
   redis_data:
-  kafka_data:
-  zookeeper_data:
-  zookeeper_logs:
+  rabbitmq_data:
   prometheus_data:
   grafana_data:
   alertmanager_data: 

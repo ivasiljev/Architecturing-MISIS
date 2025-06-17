@@ -35,7 +35,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
 
 // Services
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
-builder.Services.AddScoped<IEventPublisher, KafkaEventPublisher>();
+builder.Services.AddScoped<IEventPublisher, RabbitMQEventPublisher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

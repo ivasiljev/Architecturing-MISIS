@@ -22,7 +22,7 @@
    - **Redis Exporter** (порт 9121) - мониторинг Redis
    - **Node Exporter** (порт 9100) - системные метрики
    - **SQL Server Exporter** (порт 9399) - мониторинг базы данных
-   - **Kafka JMX Exporter** (порт 9308) - мониторинг Kafka
+   - **RabbitMQ Exporter** (порт 9419) - мониторинг RabbitMQ
 
 ### Мониторинг сервисов приложения
 
@@ -62,7 +62,7 @@ dotnet run
 
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3000
-- **Kafka UI**: http://localhost:8080
+- **RabbitMQ Management**: http://localhost:15672
 - **API Health**: http://localhost:5257/health
 - **UI Health**: http://localhost:5216/health
 
@@ -84,9 +84,11 @@ dotnet run
 - `redis_connected_clients` - количество подключенных клиентов
 - `redis_commands_total` - общее количество команд
 
-### Kafka метрики
-- `kafka_server_BrokerTopicMetrics_MessagesInPerSec` - скорость поступления сообщений
-- `kafka_server_BrokerTopicMetrics_BytesInPerSec` - скорость поступления данных
+### RabbitMQ метрики
+- `rabbitmq_queue_messages` - количество сообщений в очередях
+- `rabbitmq_queue_messages_ready` - готовые к обработке сообщения
+- `rabbitmq_connections` - количество соединений
+- `rabbitmq_consumers` - количество потребителей
 
 ### SQL Server метрики
 - Подключения к базе данных
@@ -95,13 +97,31 @@ dotnet run
 
 ## Дашборды Grafana
 
-### JewelryStore System Overview
+### 1. Main Overview - JewelryStore System Overview
 Главный дашборд включает:
 - График HTTP запросов по времени
 - Статус всех сервисов (up/down)
 - Использование памяти Redis
 - Загрузка CPU системы
-- Скорость обработки сообщений Kafka
+- Скорость обработки сообщений RabbitMQ
+
+### 2. Business Metrics - JewelryStore Business Dashboard
+Бизнес-метрики системы:
+- Количество созданных заказов
+- Общая сумма заказов
+- Топ продуктов по продажам
+- Активность пользователей
+
+### 3. RabbitMQ - JewelryStore EDA
+Специализированный дашборд для мониторинга RabbitMQ:
+- Статус RabbitMQ сервиса
+- Количество активных соединений и каналов
+- Метрики очередей (orders, products, notifications, logs)
+- Скорость публикации и обработки сообщений
+- Количество потребителей по очередям
+- Использование памяти RabbitMQ
+- Статистика обменов (exchanges)
+- Таблица статуса всех очередей
 
 ## Настройка алертов
 
@@ -116,7 +136,7 @@ dotnet run
 ### Для оценки 4
 ✅ Контейнеризированное приложение  
 ✅ Кеширование (Redis)  
-✅ Event-driven архитектура (Kafka)  
+✅ Event-driven архитектура (RabbitMQ)  
 ✅ Система мониторинга (Prometheus + Grafana)  
 
 ### Для оценки 5

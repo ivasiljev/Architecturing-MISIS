@@ -33,12 +33,12 @@ if errorlevel 1 (
 )
 
 echo.
-echo [Kafka] Testing topics...
-docker exec jewelrystore-kafka kafka-topics --bootstrap-server localhost:9092 --list >nul 2>&1
+echo [RabbitMQ] Testing connection...
+curl -s -u guest:guest http://localhost:15672/api/overview >nul 2>&1
 if errorlevel 1 (
-    echo   WARNING: Kafka not ready yet
+    echo   WARNING: RabbitMQ not ready yet
 ) else (
-    echo   SUCCESS: Kafka is working
+    echo   SUCCESS: RabbitMQ is working
 )
 
 echo.
@@ -64,7 +64,7 @@ echo == Web Interfaces ==
 echo Available services in browser:
 echo   Grafana:          http://localhost:3000 (admin/admin123)
 echo   Prometheus:       http://localhost:9090
-echo   Kafka UI:         http://localhost:8080
+echo   RabbitMQ Management: http://localhost:15672
 echo.
 
 echo == Applications ==
@@ -92,7 +92,7 @@ echo == Metrics Exporters ==
 echo   Redis Exporter:      localhost:9121
 echo   Node Exporter:       localhost:9100
 echo   SQL Server Exporter: localhost:9399
-echo   Kafka JMX Exporter:  localhost:9308
+echo   RabbitMQ Exporter:   localhost:9419
 echo.
 
 echo ===============================================

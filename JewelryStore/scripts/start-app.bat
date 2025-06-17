@@ -67,7 +67,7 @@ echo   API:              http://localhost:5257
 echo   Swagger:          http://localhost:5257
 echo   Prometheus:       http://localhost:9090
 echo   Grafana:          http://localhost:3000 (admin/admin123)
-echo   Kafka UI:         http://localhost:8080
+echo   RabbitMQ Management: http://localhost:15672
 echo.
 echo TIP: To stop, close console windows
 echo ===============================================
