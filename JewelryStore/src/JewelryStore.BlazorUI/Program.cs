@@ -1,6 +1,7 @@
 using MudBlazor.Services;
 using JewelryStore.BlazorUI.Services;
 using System.Text.Json;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,8 +51,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Enable metrics collection
+app.UseHttpMetrics();
+
 // Health check endpoint  
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
+// Prometheus metrics endpoint
+app.MapMetrics();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
