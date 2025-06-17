@@ -1,0 +1,186 @@
+@page "/cart"
+@using JewelryStore.BlazorUI.Services
+@using JewelryStore.BlazorUI.Models
+@inject ICartService CartService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Корзина - Ювелирный Магазин</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
+    <MudText Typo="Typo.h4" GutterBottom="true" Class="text-center">
+        <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Class="mr-2" /> Корзина покупок
+    </MudText>
+
+    @if (!CartService.Cart.Items.Any())
+    {
+        <MudPaper Class="pa-8" Style="text-align: center;">
+            <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" Size="Size.Large" Color="Color.Secondary"
+                     Style="font-size: 120px; opacity: 0.6;" />
+            <MudText Typo="Typo.h5" Class="mb-4">Ваша корзина пуста</MudText>
+            <MudText Typo="Typo.body1" Class="mb-6">Добавьте товары из каталога</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Diamond"
+                       Href="/products">
+                Перейти к покупкам
+            </MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="pa-4">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6">
+                    Товаров в корзине: @CartService.Cart.Items.Count (@CartService.Cart.TotalItems шт.)
+                </MudText>
+                <MudTooltip Text="Очистить корзину">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="ClearCart"
+                                   Size="Size.Large" />
+                </MudTooltip>
+            </div>
+
+            <!-- Список товаров в корзине -->
+            @foreach (var item in CartService.Cart.Items)
+            {
+                <MudCard Class="mb-3" Elevation="2">
+                    <MudCardContent>
+                        <div class="d-flex align-center">
+                            <!-- Изображение товара -->
+                            <div class="flex-shrink-0 mr-4">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <MudImage Src="@item.ImageUrl" Alt="@item.Name"
+                                              Width="80" Height="80" ObjectFit="ObjectFit.Cover"
+                                              Style="border-radius: 8px;" />
+                                }
+                                else
+                                {
+                                    <div style="width: 80px; height: 80px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <MudIcon Icon="@Icons.Material.Filled.Diamond" Size="Size.Large" Color="Color.Primary" />
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Информация о товаре -->
+                            <div class="flex-grow-1">
+                                <MudText Typo="Typo.h6">@item.Name</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@item.Material @(!string.IsNullOrEmpty(item.Gemstone) ? $", {item.Gemstone}" : "")</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-2">
+                                    @item.Price.ToString("C", new System.Globalization.CultureInfo("ru-RU"))
+                                </MudText>
+                            </div>
+
+                            <!-- Управление количеством -->
+                            <div class="d-flex align-center ml-4">
+                                <MudIconButton Icon="@Icons.Material.Filled.Remove" Size="Size.Small"
+                                               OnClick="() => UpdateQuantity(item.ProductId, item.Quantity - 1)"
+                                               Disabled="@(item.Quantity <= 1)" />
+                                <MudText Typo="Typo.h6" Class="mx-3">@item.Quantity</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small"
+                                               OnClick="() => UpdateQuantity(item.ProductId, item.Quantity + 1)" />
+                            </div>
+
+                            <!-- Общая стоимость товара -->
+                            <div class="ml-4 text-right">
+                                <MudText Typo="Typo.h6" Color="Color.Primary">
+                                    @item.TotalPrice.ToString("C", new System.Globalization.CultureInfo("ru-RU"))
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @item.Price.ToString("C", new System.Globalization.CultureInfo("ru-RU")) × @item.Quantity
+                                </MudText>
+                            </div>
+
+                            <!-- Кнопка удаления -->
+                            <div class="ml-4">
+                                <MudTooltip Text="Удалить из корзины">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                                   OnClick="() => RemoveItem(item.ProductId)" />
+                                </MudTooltip>
+                            </div>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            }
+
+            <!-- Итоговая информация -->
+            <MudDivider Class="my-4" />
+            <div class="d-flex justify-space-between align-center">
+                <div>
+                    <MudText Typo="Typo.h5">
+                        Итого: @CartService.Cart.TotalAmount.ToString("C", new System.Globalization.CultureInfo("ru-RU"))
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Общее количество: @CartService.Cart.TotalItems товаров
+                    </MudText>
+                </div>
+                <div class="d-flex flex-column ga-2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                               StartIcon="@Icons.Material.Filled.Payment" Href="/checkout">
+                        Оформить заказ
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Medium"
+                               StartIcon="@Icons.Material.Filled.ArrowBack" Href="/products" Class="mt-2">
+                        Продолжить покупки
+                    </MudButton>
+                </div>
+            </div>
+
+            <!-- Дополнительная информация -->
+            <MudDivider Class="my-4" />
+            <MudGrid>
+                <MudItem xs="12" md="3">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Small" Color="Color.Success"
+                                 Class="mr-2" />
+                        <MudText Typo="Typo.caption">Безопасная оплата</MudText>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.LocalShipping" Size="Size.Small" Color="Color.Primary"
+                                 Class="mr-2" />
+                        <MudText Typo="Typo.caption">Быстрая доставка</MudText>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Small" Color="Color.Info"
+                                 Class="mr-2" />
+                        <MudText Typo="Typo.caption">Гарантия качества</MudText>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Small" Color="Color.Warning"
+                                 Class="mr-2" />
+                        <MudText Typo="Typo.caption">Сертифицированные товары</MudText>
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+</MudContainer>
+
+<style>
+    .text-muted {
+        color: rgba(0, 0, 0, 0.6);
+    }
+</style>
+
+@code {
+    private async Task UpdateQuantity(int productId, int newQuantity)
+    {
+        await CartService.UpdateQuantityAsync(productId, newQuantity);
+    }
+
+    private async Task RemoveItem(int productId)
+    {
+        await CartService.RemoveFromCartAsync(productId);
+        Snackbar.Add("Товар удален из корзины", Severity.Info);
+    }
+
+    private async Task ClearCart()
+    {
+        await CartService.ClearCartAsync();
+        Snackbar.Add("Корзина очищена", Severity.Info);
+    }
+}

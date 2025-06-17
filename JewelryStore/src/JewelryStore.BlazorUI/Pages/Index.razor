@@ -1,0 +1,138 @@
+﻿@page "/"
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+
+<PageTitle>💎 Ювелирный Магазин - Эксклюзивные украшения</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <!-- Hero Section -->
+    <MudPaper Elevation="0" Class="pa-8 mb-6"
+        Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px;">
+        <MudGrid Justify="Justify.Center" AlignItems="Center">
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h2" Class="mb-4" Style="font-weight: 300;">
+                    Ювелирные украшения
+                </MudText>
+                <MudText Typo="Typo.h4" Class="mb-4" Style="font-weight: 200;">
+                    высочайшего качества
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-6">
+                    Откройте для себя эксклюзивную коллекцию драгоценных украшений,
+                    созданных мастерами с многолетним опытом
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Large" Href="/products"
+                    Class="mr-4">
+                    Смотреть каталог
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" Size="Size.Large" Href="/about">
+                    О нас
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" md="6" Class="text-center">
+                <MudIcon Icon="@Icons.Material.Filled.Diamond" Style="font-size: 200px; opacity: 0.7;" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- Featured Products Section -->
+    <MudText Typo="Typo.h4" Class="mb-6 text-center">Популярные товары</MudText>
+
+    @if (featuredProducts == null)
+    {
+        <MudGrid>
+            @for (int i = 0; i < 4; i++)
+            {
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" Class="mb-2" />
+                    <MudSkeleton SkeletonType="SkeletonType.Text" />
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="60%" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var product in featuredProducts.Take(4))
+            {
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="3" Class="mud-card-hover" Style="cursor: pointer;"
+                        @onclick="() => NavigateToProduct(product.Id)">
+                        <MudCardMedia Image="@GetProductImage(product)" Height="250" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-2">@product.Name</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                @product.Material @(!string.IsNullOrEmpty(product.Gemstone) ? $" с {product.Gemstone}" : "")
+                            </MudText>
+                            <MudText Typo="Typo.h5" Color="Color.Primary">
+                                @product.Price.ToString("C0")
+                            </MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+    <!-- Features Section -->
+    <MudPaper Elevation="2" Class="pa-8 mt-8" Style="border-radius: 16px;">
+        <MudText Typo="Typo.h4" Class="mb-6 text-center">Почему выбирают нас</MudText>
+        <MudGrid>
+            <MudItem xs="12" md="4" Class="text-center">
+                <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Style="font-size: 60px;" Color="Color.Primary"
+                    Class="mb-4" />
+                <MudText Typo="Typo.h6" Class="mb-2">Гарантия качества</MudText>
+                <MudText Typo="Typo.body2">
+                    Все изделия сертифицированы и имеют пожизненную гарантию
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="text-center">
+                <MudIcon Icon="@Icons.Material.Filled.LocalShipping" Style="font-size: 60px;" Color="Color.Primary"
+                    Class="mb-4" />
+                <MudText Typo="Typo.h6" Class="mb-2">Бесплатная доставка</MudText>
+                <MudText Typo="Typo.body2">
+                    Доставляем по всей России бесплатно от 50 000 рублей
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="text-center">
+                <MudIcon Icon="@Icons.Material.Filled.Support" Style="font-size: 60px;" Color="Color.Primary"
+                    Class="mb-4" />
+                <MudText Typo="Typo.h6" Class="mb-2">Поддержка 24/7</MudText>
+                <MudText Typo="Typo.body2">
+                    Наши консультанты готовы помочь в любое время
+                </MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<ProductViewModel>? featuredProducts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        featuredProducts = await ProductService.GetProductsAsync(1, 8);
+    }
+
+    private void NavigateToProduct(int productId)
+    {
+        Navigation.NavigateTo($"/products/{productId}");
+    }
+
+    private string GetProductImage(ProductViewModel product)
+    {
+        // Заглушка для изображений, так как в тестовых данных ссылки на локальные файлы
+        return $"https://via.placeholder.com/300x250/6366f1/ffffff?text={Uri.EscapeDataString(product.Name)}";
+    }
+}
+
+<style>
+    .mud-card-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .mud-card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    }
+</style>

@@ -1,0 +1,143 @@
+@page "/register"
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Регистрация - Ювелирный Магазин</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Elevation="4" Class="pa-8" Style="border-radius: 16px;">
+        <div class="text-center mb-6">
+            <MudText Align="Align.Center" Typo="Typo.h4" Class="mb-6">
+                <MudIcon Icon="@Icons.Material.Filled.Diamond" Style="font-size: 60px;" Color="Color.Primary" />
+                <br />
+                Регистрация
+            </MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Создайте аккаунт для покупок в нашем магазине
+            </MudText>
+        </div>
+
+        <EditForm Model="@_registerModel" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_registerModel.FirstName" For="@(() => _registerModel.FirstName)"
+                        Label="Имя" Required="true" RequiredError="Введите имя" Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Person" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_registerModel.LastName" For="@(() => _registerModel.LastName)"
+                        Label="Фамилия" Required="true" RequiredError="Введите фамилию" Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Person" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_registerModel.Username" For="@(() => _registerModel.Username)"
+                        Label="Имя пользователя" Required="true" RequiredError="Введите имя пользователя"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_registerModel.Email" For="@(() => _registerModel.Email)" Label="Email"
+                        InputType="InputType.Email" Required="true" RequiredError="Введите корректный email"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_registerModel.Password" For="@(() => _registerModel.Password)"
+                        Label="Пароль" InputType="InputType.Password" Required="true" RequiredError="Введите пароль"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_registerModel.ConfirmPassword"
+                        For="@(() => _registerModel.ConfirmPassword)" Label="Подтвердите пароль"
+                        InputType="InputType.Password" Required="true" RequiredError="Подтвердите пароль"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock"
+                        Validation="@(new Func<string, string>(PasswordMatch))" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_registerModel.Phone" For="@(() => _registerModel.Phone)"
+                        Label="Номер телефона" Required="true" RequiredError="Введите номер телефона"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_registerModel.Address" For="@(() => _registerModel.Address)"
+                        Label="Адрес" Lines="2" Required="true" RequiredError="Введите адрес"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.LocationOn" />
+                </MudItem>
+            </MudGrid>
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                Size="Size.Large" Class="mt-6 mb-4"
+                Disabled="isLoading || _registerModel.Password != _registerModel.ConfirmPassword">
+                @if (isLoading)
+                {
+                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                    <MudText>Регистрация...</MudText>
+                }
+                else
+                {
+                    <MudText>Зарегистрироваться</MudText>
+                }
+            </MudButton>
+        </EditForm>
+
+        <MudDivider Class="my-4" />
+
+        <div class="text-center">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Уже есть аккаунт?
+            </MudText>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/login" Class="mt-2">
+                Войти
+            </MudButton>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private RegisterModel _registerModel = new();
+    private bool isLoading = false;
+
+    private async Task OnValidSubmit()
+    {
+        if (_registerModel.Password != _registerModel.ConfirmPassword)
+        {
+            Snackbar.Add("Пароли не совпадают", Severity.Error);
+            return;
+        }
+
+        isLoading = true;
+
+        try
+        {
+            var success = await AuthService.RegisterAsync(_registerModel);
+
+            if (success)
+            {
+                Snackbar.Add($"Добро пожаловать, {AuthService.CurrentUser?.FirstName}!", Severity.Success);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                Snackbar.Add("Ошибка при регистрации. Возможно, пользователь уже существует", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка при регистрации: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string? PasswordMatch(string confirmPassword)
+    {
+        if (_registerModel.Password != confirmPassword)
+        {
+            return "Пароли не совпадают";
+        }
+        return null;
+    }
+}

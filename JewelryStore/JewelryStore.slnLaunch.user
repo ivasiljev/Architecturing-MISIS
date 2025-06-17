@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "src\\JewelryStore.API\\JewelryStore.API.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\JewelryStore.BlazorUI\\JewelryStore.BlazorUI.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

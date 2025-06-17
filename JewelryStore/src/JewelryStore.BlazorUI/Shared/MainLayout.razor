@@ -1,0 +1,92 @@
+﻿@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject ICartService CartService
+@implements IDisposable
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+            OnClick="@((e) => ToggleDrawer())" Class="ml-3" />
+
+        <MudButton Href="/" Variant="Variant.Text" Color="Color.Inherit" Class="ml-3"
+            StartIcon="@Icons.Material.Filled.Diamond">
+            Jewelry Store
+        </MudButton>
+
+        <MudSpacer />
+
+        <!-- Корзина -->
+        <MudBadge Content="@CartService.Cart.TotalItems" Color="Color.Error"
+            Visible="@(CartService.Cart.TotalItems > 0)" Class="mr-4">
+            <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart" Color="Color.Inherit" Href="/cart" />
+        </MudBadge>
+
+        @if (AuthService.IsAuthenticated)
+        {
+            <MudText Typo="Typo.body1" Class="mr-4">Привет, @AuthService.CurrentUser?.FirstName!</MudText>
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="LogoutAsync">Выйти</MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/login">Войти</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/register" Class="ml-2">Регистрация</MudButton>
+        }
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="@_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">💎 Навигация</MudText>
+        </MudDrawerHeader>
+        <NavMenu />
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = false;
+    private bool _servicesInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_servicesInitialized)
+        {
+            // Инициализация сервисов после первого рендера для избежания ошибок prerendering
+            await AuthService.InitializeAsync();
+
+            if (CartService is CartService cartServiceImpl)
+            {
+                await cartServiceImpl.InitializeAsync();
+            }
+
+            CartService.OnCartChanged += StateHasChanged;
+            _servicesInitialized = true;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        CartService.OnCartChanged -= StateHasChanged;
+    }
+
+    void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,385 @@
+@page "/product/{ProductId:int}"
+@inject IProductService ProductService
+@inject ICartService CartService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>@(product?.Name ?? "Товар") - Ювелирный Магазин</PageTitle>
+
+@if (isLoading)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="pt-8">
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudSkeleton SkeletonType="SkeletonType.Text" Height="32px" Width="80%" />
+                <MudSkeleton SkeletonType="SkeletonType.Text" Height="24px" Width="60%" Class="mt-2" />
+                <MudSkeleton SkeletonType="SkeletonType.Text" Height="20px" Width="40%" Class="mt-4" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="100px" Class="mt-4" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="40px" Width="200px" Class="mt-6" />
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+}
+else if (product == null)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="pt-8 text-center">
+        <MudAlert Severity="Severity.Warning" Class="mb-4">
+            <MudText Typo="Typo.h6">Товар не найден</MudText>
+            <MudText>К сожалению, запрашиваемый товар не найден в нашем каталоге.</MudText>
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" 
+                  Color="Color.Primary" 
+                  StartIcon="@Icons.Material.Filled.ArrowBack"
+                  OnClick="GoBack">
+            Вернуться к каталогу
+        </MudButton>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="pt-8">
+        <!-- Навигация -->
+        <MudBreadcrumbs Items="breadcrumbs" Class="mb-6" />
+
+        <MudGrid>
+            <!-- Изображение товара -->
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="4" Class="image-container">
+                    <div style="height: 500px; position: relative; overflow: hidden;">
+                        <img src="@GetProductImage(product)" 
+                             alt="@product.Name" 
+                             style="width: 100%; height: 100%; object-fit: cover; opacity: 0;" 
+                             loading="lazy"
+                             onload="this.style.opacity='1'" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: none; align-items: center; justify-content: center; position: absolute; top: 0;">
+                            <MudIcon Icon="@Icons.Material.Filled.Diamond" 
+                                   Size="Size.Large" 
+                                   Color="Color.Primary" 
+                                   Style="font-size: 8rem; opacity: 0.7;" />
+                        </div>
+                        @if (product.StockQuantity <= 0)
+                        {
+                            <div class="out-of-stock-overlay">
+                                <MudChip Size="Size.Large" Color="Color.Error">Нет в наличии</MudChip>
+                            </div>
+                        }
+                        else if (product.StockQuantity <= 3)
+                        {
+                            <div class="low-stock-badge">
+                                <MudChip Size="Size.Small" Color="Color.Warning">Осталось @product.StockQuantity шт.</MudChip>
+                            </div>
+                        }
+                    </div>
+                </MudCard>
+            </MudItem>
+
+            <!-- Информация о товаре -->
+            <MudItem xs="12" md="6">
+                <div Class="product-info">
+                    <!-- Заголовок и цена -->
+                    <MudText Typo="Typo.h3" GutterBottom="true" Style="font-weight: 600; line-height: 1.2;">
+                        @product.Name
+                    </MudText>
+                    
+                    <MudChip Color="Color.Secondary" Class="mb-4">@product.Category</MudChip>
+                    
+                    <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-4" Style="font-weight: 700;">
+                        @product.Price.ToString("C0", new System.Globalization.CultureInfo("ru-RU"))
+                    </MudText>
+
+                    <!-- Описание -->
+                    <MudText Typo="Typo.body1" Class="mb-6" Style="line-height: 1.6;">
+                        @product.Description
+                    </MudText>
+
+                    <!-- Характеристики -->
+                    <MudCard Elevation="2" Class="mb-6">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">
+                                    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                                    Характеристики
+                                </MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudSimpleTable Dense="true">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Материал:</strong></td>
+                                        <td>@product.Material</td>
+                                    </tr>
+                                    @if (!string.IsNullOrEmpty(product.Gemstone))
+                                    {
+                                        <tr>
+                                            <td><strong>Камень:</strong></td>
+                                            <td>@product.Gemstone</td>
+                                        </tr>
+                                    }
+                                    @if (product.Weight > 0)
+                                    {
+                                        <tr>
+                                            <td><strong>Вес:</strong></td>
+                                            <td>@product.Weight.ToString("F1") г</td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrEmpty(product.Size))
+                                    {
+                                        <tr>
+                                            <td><strong>Размер:</strong></td>
+                                            <td>@product.Size</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <td><strong>В наличии:</strong></td>
+                                        <td>
+                                            @if (product.StockQuantity > 0)
+                                            {
+                                                <MudChip Size="Size.Small" Color="Color.Success">@product.StockQuantity шт.</MudChip>
+                                            }
+                                            else
+                                            {
+                                                <MudChip Size="Size.Small" Color="Color.Error">Нет в наличии</MudChip>
+                                            }
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </MudSimpleTable>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Действия -->
+                    <div Class="d-flex gap-4 align-center mb-4">
+                        <MudNumericField @bind-Value="quantity" 
+                                       Label="Количество" 
+                                       Variant="Variant.Outlined" 
+                                       Min="1" 
+                                       Max="@product.StockQuantity"
+                                       Style="width: 120px;"
+                                       Disabled="@(product.StockQuantity <= 0)" />
+                        
+                        <MudButton Variant="Variant.Filled" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Large"
+                                  StartIcon="@Icons.Material.Filled.ShoppingCart"
+                                  Disabled="@(product.StockQuantity <= 0 || isAddingToCart)"
+                                  OnClick="AddToCart">
+                            @if (isAddingToCart)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                <span Class="ml-2">Добавление...</span>
+                            }
+                            else
+                            {
+                                <span>В корзину</span>
+                            }
+                        </MudButton>
+                    </div>
+
+                    <!-- Дополнительные действия -->
+                    <div Class="d-flex gap-2">
+                        <MudButton Variant="Variant.Outlined" 
+                                  Color="Color.Secondary"
+                                  StartIcon="@Icons.Material.Filled.Favorite"
+                                  OnClick="AddToWishlist">
+                            В избранное
+                        </MudButton>
+                        
+                        <MudButton Variant="Variant.Text" 
+                                  Color="Color.Primary"
+                                  StartIcon="@Icons.Material.Filled.Share"
+                                  OnClick="ShareProduct">
+                            Поделиться
+                        </MudButton>
+                    </div>
+
+                    <!-- Гарантии и доставка -->
+                    <MudCard Elevation="1" Class="mt-6" Style="background-color: #f8f9fa;">
+                        <MudCardContent Class="pa-4">
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <div Class="d-flex align-center mb-2">
+                                        <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Small" Color="Color.Success" Class="mr-2" />
+                                        <MudText Typo="Typo.body2"><strong>Гарантия 2 года</strong></MudText>
+                                    </div>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <div Class="d-flex align-center mb-2">
+                                        <MudIcon Icon="@Icons.Material.Filled.LocalShipping" Size="Size.Small" Color="Color.Primary" Class="mr-2" />
+                                        <MudText Typo="Typo.body2"><strong>Бесплатная доставка</strong></MudText>
+                                    </div>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <div Class="d-flex align-center">
+                                        <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Small" Color="Color.Warning" Class="mr-2" />
+                                        <MudText Typo="Typo.body2"><strong>Сертификат качества</strong></MudText>
+                                    </div>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <div Class="d-flex align-center">
+                                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Small" Color="Color.Info" Class="mr-2" />
+                                        <MudText Typo="Typo.body2"><strong>Возврат 30 дней</strong></MudText>
+                                    </div>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+}
+
+<style>
+    .image-container {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .out-of-stock-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .low-stock-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+    }
+    
+    .product-info {
+        padding-left: 2rem;
+    }
+    
+    @@media (max-width: 960px) {
+        .product-info {
+            padding-left: 0;
+            margin-top: 2rem;
+        }
+    }
+    
+    .gap-4 {
+        gap: 1rem;
+    }
+    
+    .gap-2 {
+        gap: 0.5rem;
+    }
+</style>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    
+    private ProductViewModel? product;
+    private bool isLoading = true;
+    private bool isAddingToCart = false;
+    private int quantity = 1;
+    
+    private List<BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProduct();
+    }
+
+    private async Task LoadProduct()
+    {
+        try
+        {
+            isLoading = true;
+            product = await ProductService.GetProductByIdAsync(ProductId);
+            
+            if (product != null)
+            {
+                SetupBreadcrumbs();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки товара: {ex.Message}");
+            Snackbar.Add("Ошибка при загрузке товара", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SetupBreadcrumbs()
+    {
+        breadcrumbs = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Главная", href: "/"),
+            new BreadcrumbItem("Каталог", href: "/products"),
+            new BreadcrumbItem(product?.Category ?? "", href: $"/products?category={product?.Category}"),
+            new BreadcrumbItem(product?.Name ?? "", href: null, disabled: true)
+        };
+    }
+
+    private async Task AddToCart()
+    {
+        if (product == null || quantity <= 0) return;
+        
+        try
+        {
+            isAddingToCart = true;
+            
+            await CartService.AddToCartAsync(product, quantity);
+            
+            Snackbar.Add($"Товар '{product.Name}' добавлен в корзину", Severity.Success);
+            
+            // Предложение перейти в корзину
+            var message = $"Товар добавлен в корзину! Количество в корзине: {CartService.Cart.TotalItems}";
+            Snackbar.Add(message, Severity.Info, config =>
+            {
+                config.Action = "Перейти в корзину";
+                config.ActionColor = MudBlazor.Color.Primary;
+                config.Onclick = snackbar =>
+                {
+                    Navigation.NavigateTo("/cart");
+                    return Task.CompletedTask;
+                };
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка добавления в корзину: {ex.Message}");
+            Snackbar.Add("Ошибка при добавлении в корзину", Severity.Error);
+        }
+        finally
+        {
+            isAddingToCart = false;
+        }
+    }
+
+    private void AddToWishlist()
+    {
+        Snackbar.Add("Товар добавлен в избранное", Severity.Info);
+    }
+
+    private void ShareProduct()
+    {
+        Snackbar.Add("Ссылка скопирована в буфер обмена", Severity.Info);
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/products");
+    }
+
+    private string GetProductImage(ProductViewModel? product)
+    {
+        if (product == null) return "";
+        
+        // Используем Picsum для красивых изображений на основе ID товара
+        var seed = Math.Abs(product.Name?.GetHashCode() ?? product.Id.GetHashCode()) % 1000;
+        return $"https://picsum.photos/500/400?random={seed}";
+    }
+} 

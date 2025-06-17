@@ -152,5 +152,10 @@ Temporary Items
 # End of https://www.toptal.com/developers/gitignore/api/macos,intellij
 
 
-src/labs
-src/lectures
+labs/
+lectures/
+bin/
+obj/
+
+.vs
+.vscode

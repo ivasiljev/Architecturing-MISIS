@@ -1,0 +1,185 @@
+@page "/about"
+
+<PageTitle>О нас - Ювелирный Магазин</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <!-- Главный заголовок -->
+    <div class="hero-section text-center mb-8">
+        <MudIcon Icon="@Icons.Material.Filled.Diamond" Size="Size.Large" Color="Color.Primary" Class="mb-4"
+            Style="font-size: 4rem;" />
+        <MudText Typo="Typo.h2" GutterBottom="true"
+            Style="background: linear-gradient(45deg, #1976d2, #42a5f5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+            Искусство в каждом изделии
+        </MudText>
+        <MudText Typo="Typo.h5" Class="text-muted mb-6">
+            Более 30 лет создаем украшения, которые рассказывают вашу историю
+        </MudText>
+    </div>
+
+    <!-- Наша история -->
+    <MudCard Elevation="3" Class="mb-8">
+        <MudCardContent Class="pa-8">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.h4" GutterBottom="true" Color="Color.Primary">
+                        <MudIcon Icon="@Icons.Material.Filled.HistoryEdu" Class="mr-2" />
+                        Наша история
+                    </MudText>
+                    <MudText Typo="Typo.body1" Class="mb-4">
+                        Наш ювелирный дом был основан в 1993 году мастером Александром Петровым,
+                        который начинал свой путь как простой подмастерье в небольшой мастерской.
+                        Сегодня мы — команда талантливых ювелиров, объединенных страстью к созданию
+                        уникальных украшений.
+                    </MudText>
+                    <MudText Typo="Typo.body1">
+                        За три десятилетия мы создали более 50,000 уникальных изделий, каждое из которых
+                        несет в себе частичку души мастера и становится спутником на жизненном пути своего владельца.
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="6" Class="d-flex align-center justify-center">
+                    <div
+                        style="width: 300px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <MudIcon Icon="@Icons.Material.Filled.Handyman" Size="Size.Large"
+                            Style="color: white; font-size: 3rem;" />
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <!-- Наши ценности -->
+    <MudText Typo="Typo.h4" GutterBottom="true" Class="text-center mb-6" Color="Color.Primary">
+        Наши ценности
+    </MudText>
+
+    <MudGrid Class="mb-8">
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Class="text-center pa-6 h-100">
+                <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Large" Color="Color.Success" Class="mb-4" />
+                <MudText Typo="Typo.h6" GutterBottom="true">Качество</MudText>
+                <MudText Typo="Typo.body2">
+                    Мы используем только драгоценные металлы высшей пробы и природные камни,
+                    прошедшие строгую сертификацию.
+                </MudText>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Class="text-center pa-6 h-100">
+                <MudIcon Icon="@Icons.Material.Filled.Palette" Size="Size.Large" Color="Color.Warning" Class="mb-4" />
+                <MudText Typo="Typo.h6" GutterBottom="true">Уникальность</MudText>
+                <MudText Typo="Typo.body2">
+                    Каждое изделие создается вручную нашими мастерами, что гарантирует
+                    его неповторимость и индивидуальность.
+                </MudText>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2" Class="text-center pa-6 h-100">
+                <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Large" Color="Color.Error" Class="mb-4" />
+                <MudText Typo="Typo.h6" GutterBottom="true">Любовь к делу</MudText>
+                <MudText Typo="Typo.body2">
+                    Каждое украшение создается с душой и любовью, ведь мы понимаем,
+                    что оно станет частью важных моментов вашей жизни.
+                </MudText>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Команда мастеров -->
+    <MudCard Elevation="3" Class="mb-8">
+        <MudCardContent Class="pa-8">
+            <MudText Typo="Typo.h4" GutterBottom="true" Class="text-center mb-6" Color="Color.Primary">
+                <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-2" />
+                Команда мастеров
+            </MudText>
+
+            <MudGrid>
+                <MudItem xs="12" md="4" Class="text-center">
+                    <MudAvatar Size="Size.Large"
+                        Style="width: 120px; height: 120px; background: linear-gradient(45deg, #ff6b6b, #ffd93d);"
+                        Class="mb-4 mx-auto">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Style="color: white;" />
+                    </MudAvatar>
+                    <MudText Typo="Typo.h6">Александр Петров</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Главный мастер</MudText>
+                    <MudText Typo="Typo.body2" Class="mt-2">
+                        Основатель мастерской. 30+ лет опыта в создании уникальных украшений.
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="4" Class="text-center">
+                    <MudAvatar Size="Size.Large"
+                        Style="width: 120px; height: 120px; background: linear-gradient(45deg, #a8edea, #fed6e3);"
+                        Class="mb-4 mx-auto">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Style="color: white;" />
+                    </MudAvatar>
+                    <MudText Typo="Typo.h6">Елена Соколова</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Мастер по камням</MudText>
+                    <MudText Typo="Typo.body2" Class="mt-2">
+                        Специалист по работе с драгоценными камнями и их огранке.
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="4" Class="text-center">
+                    <MudAvatar Size="Size.Large"
+                        Style="width: 120px; height: 120px; background: linear-gradient(45deg, #667eea, #764ba2);"
+                        Class="mb-4 mx-auto">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Style="color: white;" />
+                    </MudAvatar>
+                    <MudText Typo="Typo.h6">Михаил Романов</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Дизайнер</MudText>
+                    <MudText Typo="Typo.body2" Class="mt-2">
+                        Создает эскизы и концепции будущих украшений, следит за трендами.
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <!-- Достижения -->
+    <MudGrid Class="mb-8">
+        <MudItem xs="6" md="3" Class="text-center">
+            <MudText Typo="Typo.h3" Color="Color.Primary" Style="font-weight: 700;">30+</MudText>
+            <MudText Typo="Typo.body1">лет опыта</MudText>
+        </MudItem>
+        <MudItem xs="6" md="3" Class="text-center">
+            <MudText Typo="Typo.h3" Color="Color.Primary" Style="font-weight: 700;">50K+</MudText>
+            <MudText Typo="Typo.body1">довольных клиентов</MudText>
+        </MudItem>
+        <MudItem xs="6" md="3" Class="text-center">
+            <MudText Typo="Typo.h3" Color="Color.Primary" Style="font-weight: 700;">15</MudText>
+            <MudText Typo="Typo.body1">мастеров в команде</MudText>
+        </MudItem>
+        <MudItem xs="6" md="3" Class="text-center">
+            <MudText Typo="Typo.h3" Color="Color.Primary" Style="font-weight: 700;">100%</MudText>
+            <MudText Typo="Typo.body1">ручная работа</MudText>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Призыв к действию -->
+    <MudCard Elevation="4" Class="pa-8 text-center"
+        Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <MudText Typo="Typo.h4" GutterBottom="true" Style="color: white;">
+            Готовы создать ваше особенное украшение?
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-6" Style="color: rgba(255,255,255,0.9);">
+            Свяжитесь с нами для индивидуальной консультации и создания украшения вашей мечты
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Large"
+            StartIcon="@Icons.Material.Filled.Phone" Href="/contact">
+            Связаться с нами
+        </MudButton>
+    </MudCard>
+</MudContainer>
+
+<style>
+    .hero-section {
+        padding: 3rem 0;
+    }
+
+    .text-muted {
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    .h-100 {
+        height: 100%;
+    }
+</style>

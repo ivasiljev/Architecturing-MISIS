@@ -1,0 +1,88 @@
+@page "/login"
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Вход - Ювелирный Магазин</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Elevation="4" Class="pa-8" Style="border-radius: 16px;">
+        <div class="text-center mb-6">
+            <MudIcon Icon="@Icons.Material.Filled.Diamond" Style="font-size: 60px;" Color="Color.Primary" />
+            <MudText Typo="Typo.h4" Class="mt-4">Вход в аккаунт</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Введите свои данные для входа
+            </MudText>
+        </div>
+
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <MudTextField @bind-Value="loginModel.Username" Label="Имя пользователя" Variant="Variant.Outlined"
+                Margin="Margin.Dense" Class="mb-4" Required="true" RequiredError="Введите имя пользователя"
+                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" />
+
+            <MudTextField @bind-Value="loginModel.Password" Label="Пароль" Variant="Variant.Outlined"
+                Margin="Margin.Dense" InputType="InputType.Password" Class="mb-6" Required="true"
+                RequiredError="Введите пароль" Adornment="Adornment.Start"
+                AdornmentIcon="@Icons.Material.Filled.Lock" />
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                Size="Size.Large" Class="mb-4" Disabled="isLoading">
+                @if (isLoading)
+                {
+                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                    <MudText>Вход...</MudText>
+                }
+                else
+                {
+                    <MudText>Войти</MudText>
+                }
+            </MudButton>
+        </EditForm>
+
+        <MudDivider Class="my-4" />
+
+        <div class="text-center">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Нет аккаунта?
+            </MudText>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/register" Class="mt-2">
+                Зарегистрироваться
+            </MudButton>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+
+        try
+        {
+            var success = await AuthService.LoginAsync(loginModel);
+
+            if (success)
+            {
+                Snackbar.Add($"Добро пожаловать, {AuthService.CurrentUser?.FirstName}!", Severity.Success);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                Snackbar.Add("Неверное имя пользователя или пароль", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка при входе: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

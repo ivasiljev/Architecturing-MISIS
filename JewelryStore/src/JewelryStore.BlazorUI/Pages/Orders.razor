@@ -1,0 +1,201 @@
+@page "/orders"
+@using JewelryStore.BlazorUI.Services
+@using JewelryStore.BlazorUI.Models
+@inject IOrderService OrderService
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Мои заказы - JewelryStore</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.ShoppingBag" Class="mr-3" />
+            Мои заказы
+        </MudText>
+
+        @if (!AuthService.IsAuthenticated)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                Для просмотра заказов необходимо войти в систему.
+                <MudButton Href="/login" Color="Color.Primary" Variant="Variant.Text" Class="ml-2">
+                    Войти
+                </MudButton>
+            </MudAlert>
+        }
+        else if (isLoading)
+        {
+            <div class="d-flex justify-center align-center" style="min-height: 200px;">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else if (orders == null || !orders.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                У вас пока нет заказов.
+                <MudButton Href="/products" Color="Color.Primary" Variant="Variant.Text" Class="ml-2">
+                    Перейти к покупкам
+                </MudButton>
+            </MudAlert>
+        }
+        else
+        {
+            <MudGrid>
+                @foreach (var order in orders)
+                {
+                    <MudItem xs="12" md="6" lg="4">
+                        <MudCard Elevation="2" Class="mb-4">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">Заказ #@order.Id</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @order.OrderDate.ToString("dd.MM.yyyy HH:mm")
+                                    </MudText>
+                                </CardHeaderContent>
+                                <CardHeaderActions>
+                                    <MudChip Color="@GetStatusColor(order.Status)" Size="Size.Small">
+                                        @GetStatusText(order.Status)
+                                    </MudChip>
+                                </CardHeaderActions>
+                            </MudCardHeader>
+
+                            <MudCardContent>
+                                <MudText Typo="Typo.body1" Class="mb-2">
+                                    <strong>Сумма:</strong> @order.TotalAmount.ToString("C",
+                                                                System.Globalization.CultureInfo.GetCultureInfo("ru-RU"))
+                        </MudText>
+
+                                <MudText Typo="Typo.body2" Class="mb-2">
+                                    <strong>Адрес доставки:</strong><br />
+                                    @order.ShippingAddress
+                                </MudText>
+
+                        @if (!string.IsNullOrEmpty(order.Notes))
+                                {
+                                    <MudText Typo="Typo.body2" Class="mb-2">
+                                        <strong>Примечания:</strong><br />
+                                        @order.Notes
+                                    </MudText>
+                                }
+
+                                <MudDivider Class="my-3" />
+
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">Товары:</MudText>
+                                @foreach (var item in order.Items)
+                                {
+                                    <MudText Typo="Typo.body2" Class="mb-1">
+                                        • @item.ProductName x @item.Quantity = @item.TotalPrice.ToString("C",
+                                                                    System.Globalization.CultureInfo.GetCultureInfo("ru-RU"))
+                        </MudText>
+                                                }
+                            </MudCardContent>
+
+                            <MudCardActions>
+                                <MudButton StartIcon="@Icons.Material.Filled.Visibility" Color="Color.Primary"
+                                    Variant="Variant.Text" OnClick="@(() => ViewOrderDetails(order.Id))">
+                                    Подробнее
+                                </MudButton>
+
+                                @if (order.Status == "Pending")
+                                {
+                                    <MudButton StartIcon="@Icons.Material.Filled.Cancel" Color="Color.Error" Variant="Variant.Text"
+                                        OnClick="@(() => CancelOrder(order.Id))">
+                                        Отменить
+                                    </MudButton>
+                                }
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+
+            @if (orders.Count > 5)
+            {
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth="true" Class="mt-4"
+                    StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadOrders">
+                    Обновить список
+                </MudButton>
+            }
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<OrderViewModel> orders = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthService.IsAuthenticated)
+        {
+            await LoadOrders();
+        }
+        else
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadOrders()
+    {
+        try
+        {
+            isLoading = true;
+            orders = await OrderService.GetUserOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка загрузки заказов: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ViewOrderDetails(int orderId)
+    {
+        NavigationManager.NavigateTo($"/order-details/{orderId}");
+    }
+
+    private async Task CancelOrder(int orderId)
+    {
+        try
+        {
+            // TODO: Реализовать отмену заказа через API
+            Snackbar.Add("Функция отмены заказа будет добавлена в следующих версиях", Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка отмены заказа: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Pending" => Color.Warning,
+            "Processing" => Color.Info,
+            "Shipped" => Color.Primary,
+            "Delivered" => Color.Success,
+            "Cancelled" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "Pending" => "Ожидает обработки",
+            "Processing" => "В обработке",
+            "Shipped" => "Отправлен",
+            "Delivered" => "Доставлен",
+            "Cancelled" => "Отменен",
+            _ => status
+        };
+    }
+}

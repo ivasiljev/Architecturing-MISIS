@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+rule_files:
+  - "alert-rules.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # JewelryStore API
+  - job_name: 'jewelrystore-api'
+    static_configs:
+      - targets: ['jewelrystore-api:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+
+  # JewelryStore UI
+  - job_name: 'jewelrystore-ui'
+    static_configs:
+      - targets: ['jewelrystore-ui:5000']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 10s
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # Kafka metrics via danielqsj/kafka-exporter
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    scrape_interval: 30s
+
+  # SQL Server metrics
+  - job_name: 'sqlserver'
+    static_configs:
+      - targets: ['sql-exporter:9399']
+    scrape_interval: 30s
+
+  # Additional services can be added here 

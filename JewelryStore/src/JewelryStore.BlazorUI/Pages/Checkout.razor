@@ -1,0 +1,296 @@
+@page "/checkout"
+@inject ICartService CartService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Оформление заказа - Ювелирный Магазин</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    @if (CartService.Cart.IsEmpty)
+    {
+        <MudAlert Severity="Severity.Info" Class="mb-4">
+            <MudText>Корзина пуста. Добавьте товары для оформления заказа.</MudText>
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/products">
+            Перейти к каталогу
+        </MudButton>
+    }
+    else
+    {
+        <MudText Typo="Typo.h3" GutterBottom="true" Class="mb-6">
+            <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2" /> Оформление заказа
+        </MudText>
+
+        <MudGrid>
+            <!-- Форма заказа -->
+            <MudItem xs="12" md="8">
+                <MudCard Elevation="3">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Данные для доставки</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <EditForm Model="checkoutModel" OnValidSubmit="ProcessOrder">
+                            <DataAnnotationsValidator />
+                            
+                            <MudGrid>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="checkoutModel.FirstName"
+                                                 Label="Имя"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true"
+                                                 For="@(() => checkoutModel.FirstName)" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="checkoutModel.LastName"
+                                                 Label="Фамилия"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true"
+                                                 For="@(() => checkoutModel.LastName)" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="checkoutModel.Email"
+                                                 Label="Email"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true"
+                                                 InputType="InputType.Email"
+                                                 For="@(() => checkoutModel.Email)" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="checkoutModel.Phone"
+                                                 Label="Телефон"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true"
+                                                 For="@(() => checkoutModel.Phone)" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField @bind-Value="checkoutModel.Address"
+                                                 Label="Адрес доставки"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true"
+                                                 For="@(() => checkoutModel.Address)" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="checkoutModel.City"
+                                                 Label="Город"
+                                                 Variant="Variant.Outlined"
+                                                 Required="true"
+                                                 For="@(() => checkoutModel.City)" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="checkoutModel.PostalCode"
+                                                 Label="Почтовый индекс"
+                                                 Variant="Variant.Outlined"
+                                                 For="@(() => checkoutModel.PostalCode)" />
+                                </MudItem>
+                            </MudGrid>
+
+                            <MudDivider Class="my-6" />
+
+                            <MudText Typo="Typo.h6" Class="mb-4">Способ оплаты</MudText>
+                            <MudRadioGroup @bind-Value="checkoutModel.PaymentMethod">
+                                <MudRadio Value="@("card")" Color="Color.Primary">
+                                    <div style="display: flex; align-items: center;">
+                                        <MudIcon Icon="@Icons.Material.Filled.CreditCard" Class="mr-2" />
+                                        Банковская карта
+                                    </div>
+                                </MudRadio>
+                                <MudRadio Value="@("cash")" Color="Color.Primary">
+                                    <div style="display: flex; align-items: center;">
+                                        <MudIcon Icon="@Icons.Material.Filled.Money" Class="mr-2" />
+                                        Наличными при получении
+                                    </div>
+                                </MudRadio>
+                            </MudRadioGroup>
+
+                            @if (checkoutModel.PaymentMethod == "card")
+                            {
+                                <MudGrid Class="mt-4">
+                                    <MudItem xs="12">
+                                        <MudTextField @bind-Value="checkoutModel.CardNumber"
+                                                     Label="Номер карты"
+                                                     Variant="Variant.Outlined"
+                                                     Placeholder="1234 5678 9012 3456"
+                                                     Required="true" />
+                                    </MudItem>
+                                    <MudItem xs="6">
+                                        <MudTextField @bind-Value="checkoutModel.CardExpiry"
+                                                     Label="Срок действия"
+                                                     Variant="Variant.Outlined"
+                                                     Placeholder="MM/YY"
+                                                     Required="true" />
+                                    </MudItem>
+                                    <MudItem xs="6">
+                                        <MudTextField @bind-Value="checkoutModel.CardCvc"
+                                                     Label="CVC"
+                                                     Variant="Variant.Outlined"
+                                                     Placeholder="123"
+                                                     Required="true" />
+                                    </MudItem>
+                                </MudGrid>
+                            }
+
+                            <MudDivider Class="my-6" />
+
+                            <MudTextField @bind-Value="checkoutModel.Notes"
+                                         Label="Комментарий к заказу"
+                                         Variant="Variant.Outlined"
+                                         Lines="3"
+                                         Placeholder="Укажите пожелания по доставке или упаковке..." />
+                        </EditForm>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Сводка заказа -->
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="3" Style="position: sticky; top: 20px;">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Ваш заказ</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <!-- Список товаров -->
+                        <div Class="mb-4">
+                            @foreach (var item in CartService.Cart.Items)
+                            {
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <div style="flex-grow: 1;">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@item.Name</MudText>
+                                        <MudText Typo="Typo.caption" Class="text-muted">@item.Quantity шт. × @item.Price.ToString("C0", new System.Globalization.CultureInfo("ru-RU"))</MudText>
+                                    </div>
+                                    <MudText Typo="Typo.body2" Style="font-weight: 600;">
+                                        @item.TotalPrice.ToString("C0", new System.Globalization.CultureInfo("ru-RU"))
+                                    </MudText>
+                                </div>
+                            }
+                        </div>
+
+                        <MudDivider Class="my-3" />
+
+                        <!-- Итоги -->
+                        <div Class="mb-4">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <MudText Typo="Typo.body1">Товары:</MudText>
+                                <MudText Typo="Typo.body1">@CartService.Cart.TotalAmount.ToString("C0", new System.Globalization.CultureInfo("ru-RU"))</MudText>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <MudText Typo="Typo.body1">Доставка:</MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Success">Бесплатно</MudText>
+                            </div>
+                            <MudDivider Class="my-2" />
+                            <div style="display: flex; justify-content: space-between;">
+                                <MudText Typo="Typo.h6">Итого:</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: 700;">
+                                    @CartService.Cart.TotalAmount.ToString("C0", new System.Globalization.CultureInfo("ru-RU"))
+                                </MudText>
+                            </div>
+                        </div>
+
+                        <MudButton Variant="Variant.Filled" 
+                                  Color="Color.Primary" 
+                                  FullWidth="true"
+                                  Size="Size.Large"
+                                  StartIcon="@Icons.Material.Filled.ShoppingCartCheckout"
+                                  OnClick="ProcessOrder"
+                                  Disabled="isProcessing">
+                            @if (isProcessing)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                <span Class="ml-2">Обработка...</span>
+                            }
+                            else
+                            {
+                                <span>Подтвердить заказ</span>
+                            }
+                        </MudButton>
+
+                        <MudText Typo="Typo.caption" Class="text-muted mt-3" Style="text-align: center;">
+                            Нажимая кнопку, вы соглашаетесь с условиями оферты
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+<style>
+    .text-muted {
+        color: rgba(0,0,0,0.6);
+    }
+</style>
+
+@code {
+    private CheckoutModel checkoutModel = new();
+    private bool isProcessing = false;
+
+    protected override void OnInitialized()
+    {
+        if (CartService.Cart.IsEmpty)
+        {
+            Navigation.NavigateTo("/cart");
+        }
+    }
+
+    private async Task ProcessOrder()
+    {
+        if (isProcessing) return;
+
+        // Простая валидация
+        if (string.IsNullOrWhiteSpace(checkoutModel.FirstName) ||
+            string.IsNullOrWhiteSpace(checkoutModel.LastName) ||
+            string.IsNullOrWhiteSpace(checkoutModel.Email) ||
+            string.IsNullOrWhiteSpace(checkoutModel.Phone) ||
+            string.IsNullOrWhiteSpace(checkoutModel.Address) ||
+            string.IsNullOrWhiteSpace(checkoutModel.City))
+        {
+            Snackbar.Add("Заполните все обязательные поля", Severity.Error);
+            return;
+        }
+
+        if (checkoutModel.PaymentMethod == "card")
+        {
+            if (string.IsNullOrWhiteSpace(checkoutModel.CardNumber) ||
+                string.IsNullOrWhiteSpace(checkoutModel.CardExpiry) ||
+                string.IsNullOrWhiteSpace(checkoutModel.CardCvc))
+            {
+                Snackbar.Add("Заполните данные банковской карты", Severity.Error);
+                return;
+            }
+        }
+
+        try
+        {
+            isProcessing = true;
+            StateHasChanged();
+
+            var result = await CartService.CheckoutAsync(checkoutModel);
+
+            if (result.IsSuccess)
+            {
+                // Показываем сообщение об успехе
+                Snackbar.Add($"Заказ #{result.OrderNumber} успешно оформлен!", Severity.Success);
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                Snackbar.Add(result.ErrorMessage ?? "Ошибка при обработке заказа", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка оформления заказа: {ex.Message}");
+            Snackbar.Add("Произошла ошибка при оформлении заказа", Severity.Error);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+} 

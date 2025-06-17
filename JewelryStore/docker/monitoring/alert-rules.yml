@@ -1,0 +1,151 @@
+groups:
+  - name: jewelrystore.infrastructure
+    interval: 30s
+    rules:
+      # Service availability alerts
+      - alert: ServiceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Critical service outage detected"
+          description: "Service {{ $labels.job }} on {{ $labels.instance }} is down for more than 5 minutes"
+
+      # Database connectivity
+      - alert: DatabaseConnectionIssues
+        expr: mssql_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+          service: database
+        annotations:
+          summary: "Database connection failure"
+          description: "SQL Server database is not responding"
+
+      # Redis cache
+      - alert: RedisCacheDown
+        expr: redis_up == 0
+        for: 3m
+        labels:
+          severity: warning
+          team: backend
+          service: cache
+        annotations:
+          summary: "Cache service failure"
+          description: "Redis cache server is not responding"
+
+      # Memory usage alerts
+      - alert: HighMemoryUsage
+        expr: dotnet_total_memory_bytes > 500000000
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High memory usage detected in application"
+          description: ".NET application memory usage is {{ $value | humanize1024 }}B, which is above 500MB"
+
+  - name: jewelrystore.business
+    interval: 60s
+    rules:
+      # Business metric alerts
+      - alert: NoRecentOrders
+        expr: increase(jewelrystore_orders_created_total{status="created"}[1h]) == 0
+        for: 30m
+        labels:
+          severity: warning
+          team: business
+          service: orders
+        annotations:
+          summary: "No orders in the last hour"
+          description: "No new orders have been created in the last hour, which may indicate a problem with the ordering system"
+
+      - alert: HighOrderCancellationRate
+        expr: (increase(jewelrystore_orders_created_total{status="cancelled"}[1h]) / increase(jewelrystore_orders_created_total[1h])) * 100 > 20
+        for: 15m
+        labels:
+          severity: warning
+          team: business
+          service: orders
+        annotations:
+          summary: "High order cancellation rate"
+          description: "Order cancellation rate is {{ $value }}%, which is above 20%"
+
+      - alert: LowProductViews
+        expr: rate(jewelrystore_product_views_total[5m]) < 0.1
+        for: 15m
+        labels:
+          severity: info
+          team: business
+          service: website
+        annotations:
+          summary: "Low product view activity"
+          description: "Product view rate is below normal levels"
+
+      - alert: NoActiveUsers
+        expr: jewelrystore_active_users_daily == 0
+        for: 10m
+        labels:
+          severity: warning
+          team: business
+          service: website
+        annotations:
+          summary: "No active users detected"
+          description: "No active users have been detected in the system"
+
+  - name: jewelrystore.performance
+    interval: 30s
+    rules:
+      # Performance alerts
+      - alert: HighHTTPErrorRate
+        expr: (rate(http_requests_received_total{code=~"5.."}[5m]) / rate(http_requests_received_total[5m])) * 100 > 5
+        for: 3m
+        labels:
+          severity: warning
+          team: backend
+          service: api
+        annotations:
+          summary: "API error rate is above 5%"
+          description: "High error rate detected: {{ $value }}% of requests are failing"
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_ms_bucket[5m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: api
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is {{ $value }}ms, which is above 1000ms"
+
+      - alert: LowInventoryStock
+        expr: jewelrystore_products_in_stock < 5
+        for: 5m
+        labels:
+          severity: info
+          team: business
+          service: inventory
+        annotations:
+          summary: "Low product inventory"
+          description: "Product {{ $labels.category }}/{{ $labels.material }} has only {{ $value }} items in stock"
+
+  - name: jewelrystore.test
+    interval: 30s
+    rules:
+      # Test alert that fires immediately
+      - alert: TestAlert
+        expr: up{job="prometheus"} == 1
+        for: 0s
+        labels:
+          severity: info
+          team: test
+          service: test
+        annotations:
+          summary: "Test alert - this should fire immediately"
+          description: "This is a test alert to verify webhook functionality" 

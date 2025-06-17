@@ -1,0 +1,25 @@
+# SQL Server Exporter Configuration
+target:
+  data_source_name: "sqlserver://sa:YourStrong@Passw0rd@sqlserver:1433?database=master"
+  collectors: [mssql_standard]
+
+collectors:
+  - collector_name: mssql_standard
+    metrics:
+      - metric_name: mssql_up
+        type: gauge
+        help: "Database up status"
+        query: "SELECT 1 as up"
+        values: [up]
+
+      - metric_name: mssql_connections
+        type: gauge  
+        help: "Number of active connections"
+        query: "SELECT COUNT(*) as connections FROM sys.dm_exec_sessions WHERE status = 'running'"
+        values: [connections]
+
+      - metric_name: mssql_database_count
+        type: gauge
+        help: "Number of databases"
+        query: "SELECT COUNT(*) as database_count FROM sys.databases"
+        values: [database_count] 

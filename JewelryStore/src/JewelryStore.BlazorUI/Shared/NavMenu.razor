@@ -1,0 +1,79 @@
+﻿@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ICartService CartService
+@implements IDisposable
+
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+        Главная
+    </MudNavLink>
+
+    <MudNavLink Href="/products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Diamond">
+        Каталог
+    </MudNavLink>
+
+    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Info">
+        О нас
+    </MudNavLink>
+
+    @if (AuthService.IsAuthenticated)
+    {
+        <MudNavLink Href="/orders" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ShoppingBag">
+            Мои заказы
+        </MudNavLink>
+
+        <MudNavLink Href="/profile" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">
+            Профиль
+        </MudNavLink>
+    }
+
+    <MudDivider Class="my-2" />
+
+    <MudNavGroup Title="Категории" Icon="@Icons.Material.Filled.Category" Expanded="false">
+        <MudNavLink Href="/products?category=кольца" Icon="@Icons.Material.Filled.RadioButtonUnchecked">
+            Кольца
+        </MudNavLink>
+        <MudNavLink Href="/products?category=серьги" Icon="@Icons.Material.Filled.Circle">
+            Серьги
+        </MudNavLink>
+        <MudNavLink Href="/products?category=ожерелья" Icon="@Icons.Material.Filled.FiberManualRecord">
+            Ожерелья
+        </MudNavLink>
+        <MudNavLink Href="/products?category=браслеты" Icon="@Icons.Material.Filled.Circle">
+            Браслеты
+        </MudNavLink>
+        <MudNavLink Href="/products?category=часы" Icon="@Icons.Material.Filled.Schedule">
+            Часы
+        </MudNavLink>
+        <MudNavLink Href="/products?category=броши" Icon="@Icons.Material.Filled.Star">
+            Броши
+        </MudNavLink>
+        <MudNavLink Href="/products?category=запонки" Icon="@Icons.Material.Filled.CropSquare">
+            Запонки
+        </MudNavLink>
+    </MudNavGroup>
+
+    <MudDivider Class="my-2" />
+
+    <MudNavLink Href="/cart" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ShoppingCart">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <span>Корзина</span>
+            @if (CartService.Cart.TotalItems > 0)
+            {
+                <MudChip Size="Size.Small" Color="Color.Error">@CartService.Cart.TotalItems</MudChip>
+            }
+        </div>
+    </MudNavLink>
+</MudNavMenu>
+
+@code {
+    protected override void OnInitialized()
+    {
+        CartService.OnCartChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        CartService.OnCartChanged -= StateHasChanged;
+    }
+}

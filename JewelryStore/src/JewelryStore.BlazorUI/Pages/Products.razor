@@ -1,0 +1,282 @@
+@page "/products"
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+
+<PageTitle>Каталог товаров</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+    <MudText Typo="Typo.h3" GutterBottom="true" Class="mb-6">
+        <MudIcon Icon="@Icons.Material.Filled.Diamond" Class="mr-2" /> Каталог ювелирных изделий
+    </MudText>
+
+    <!-- Фильтры и поиск -->
+    <MudCard Elevation="3" Class="mb-6">
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    <MudTextField @bind-Value="searchTerm" Label="Поиск товаров" Variant="Variant.Outlined"
+                        Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                        OnKeyUp="OnSearchKeyUp" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect @bind-Value="selectedCategory" Label="Категория" Variant="Variant.Outlined" T="string">
+                        <MudSelectItem Value="@("")">Все категории</MudSelectItem>
+                        <MudSelectItem Value="@("Кольца")">Кольца</MudSelectItem>
+                        <MudSelectItem Value="@("Серьги")">Серьги</MudSelectItem>
+                        <MudSelectItem Value="@("Ожерелья")">Ожерелья</MudSelectItem>
+                        <MudSelectItem Value="@("Браслеты")">Браслеты</MudSelectItem>
+                        <MudSelectItem Value="@("Часы")">Часы</MudSelectItem>
+                        <MudSelectItem Value="@("Броши")">Броши</MudSelectItem>
+                        <MudSelectItem Value="@("Запонки")">Запонки</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect @bind-Value="sortBy" Label="Сортировать по" Variant="Variant.Outlined" T="string">
+                        <MudSelectItem Value="@("name")">Названию</MudSelectItem>
+                        <MudSelectItem Value="@("price_asc")">Цене (по возрастанию)</MudSelectItem>
+                        <MudSelectItem Value="@("price_desc")">Цене (по убыванию)</MudSelectItem>
+                        <MudSelectItem Value="@("date")">Дате добавления</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                        StartIcon="@Icons.Material.Filled.FilterList" OnClick="ApplyFilters">
+                        Применить
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <!-- Результаты -->
+    @if (isLoading)
+    {
+        <MudGrid>
+            @for (int i = 0; i < 8; i++)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Style="height: 400px;">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+                        <MudCardContent>
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Height="24px" />
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Height="16px" Width="60%" />
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Height="20px" Width="40%" />
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        @if (filteredProducts?.Any() == true)
+        {
+            <MudText Typo="Typo.body1" Class="mb-4">
+                Найдено товаров: @filteredProducts.Count()
+            </MudText>
+
+            <MudGrid>
+                @foreach (var product in filteredProducts)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="3">
+                        <MudCard Class="product-card" Style="height: 100%; cursor: pointer;"
+                            @onclick="() => OpenProductDetails(product.Id)">
+                            <div style="height: 200px; position: relative; overflow: hidden;">
+                                <img src="@GetProductImage(product)" alt="@product.Name"
+                                    style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; opacity: 0;"
+                                    loading="lazy" onload="this.style.opacity='1'"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                                <div
+                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: none; align-items: center; justify-content: center; position: absolute; top: 0;">
+                                    <MudIcon Icon="@GetCategoryIcon(product.Category)" Size="Size.Large" Color="Color.Primary" />
+                                </div>
+                            </div>
+                            <MudCardContent Style="height: 200px; display: flex; flex-direction: column;">
+                                <MudText Typo="Typo.h6" Class="mb-2" Style="font-weight: 600; line-height: 1.2;">
+                                    @product.Name
+                                </MudText>
+                                <MudText Typo="Typo.body2" Class="mb-2 text-muted" Style="flex-grow: 1; overflow: hidden;">
+                                    @(product.Description?.Length > 80 ? product.Description.Substring(0, 80) + "..." :
+                                                            product.Description)
+                    </MudText>
+                    <div Class="mt-auto">
+                        <MudChip Size="Size.Small" Color="Color.Secondary" Class="mb-2">
+                            @product.Category
+                        </MudChip>
+                        <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: 700;">
+                            @product.Price.ToString("C0", new System.Globalization.CultureInfo("ru-RU"))
+                        </MudText>
+                        <MudText Typo="Typo.caption" Class="text-muted">
+                            @product.Material
+                            @if (!string.IsNullOrEmpty(product.Gemstone))
+                                        {
+                                            <text>, @product.Gemstone</text>
+                                        }
+                                    </MudText>
+                                </div>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info" Class="my-4">
+                <MudText>По вашему запросу товары не найдены.</MudText>
+            </MudAlert>
+        }
+    }
+</MudContainer>
+
+<style>
+    .product-card {
+        transition: all 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .text-muted {
+        color: rgba(0, 0, 0, 0.6);
+    }
+</style>
+
+@code {
+    private List<ProductViewModel>? allProducts;
+    private IEnumerable<ProductViewModel>? filteredProducts;
+    private bool isLoading = true;
+    private string searchTerm = "";
+    private string _selectedCategory = "";
+    private string _sortBy = "name";
+
+    private string selectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            _selectedCategory = value;
+            ApplyFilters();
+        }
+    }
+
+    private string sortBy
+    {
+        get => _sortBy;
+        set
+        {
+            _sortBy = value;
+            ApplyFilters();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Обработка query параметров из URL
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var categoryFromUrl = query["category"];
+
+        if (!string.IsNullOrEmpty(categoryFromUrl))
+        {
+            _selectedCategory = categoryFromUrl;
+        }
+
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        try
+        {
+            isLoading = true;
+            allProducts = await ProductService.GetAllProductsAsync();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки товаров: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        if (allProducts == null) return;
+
+        var query = allProducts.AsEnumerable();
+
+        // Фильтр по категории
+        if (!string.IsNullOrEmpty(selectedCategory))
+        {
+            query = query.Where(p => p.Category?.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase) == true);
+        }
+
+        // Поиск по названию и описанию
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(p =>
+            (p.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+            (p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+            (p.Material?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+            (p.Gemstone?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+            );
+        }
+
+        // Сортировка
+        query = sortBy switch
+        {
+            "price_asc" => query.OrderBy(p => p.Price),
+            "price_desc" => query.OrderByDescending(p => p.Price),
+            "date" => query.OrderByDescending(p => p.CreatedAt),
+            _ => query.OrderBy(p => p.Name)
+        };
+
+        filteredProducts = query.ToList();
+        StateHasChanged();
+    }
+
+    private void OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplyFilters();
+        }
+    }
+
+    private void OpenProductDetails(int productId)
+    {
+        Navigation.NavigateTo($"/product/{productId}");
+    }
+
+    private string GetProductImage(ProductViewModel product)
+    {
+        // Используем Picsum для красивых изображений на основе ID товара
+        var seed = Math.Abs(product.Name?.GetHashCode() ?? product.Id.GetHashCode()) % 1000;
+        return $"https://picsum.photos/300/200?random={seed}";
+    }
+
+    private string GetCategoryIcon(string? category)
+    {
+        return category?.ToLower() switch
+        {
+            "кольца" => Icons.Material.Filled.RadioButtonUnchecked,
+            "серьги" => Icons.Material.Filled.Circle,
+            "ожерелья" => Icons.Material.Filled.FiberManualRecord,
+            "браслеты" => Icons.Material.Filled.Circle,
+            "часы" => Icons.Material.Filled.Schedule,
+            "броши" => Icons.Material.Filled.Star,
+            "запонки" => Icons.Material.Filled.CropSquare,
+            _ => Icons.Material.Filled.Diamond
+        };
+    }
+}
